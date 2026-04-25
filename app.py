@@ -237,6 +237,20 @@ h1, h2, h3 {{ font-family: 'Syne', sans-serif !important; }}
     border: 2px dashed {'#c4b5fd' if not dark else '#2a2a35'} !important;
     border-radius: 12px !important;
 }}
+[data-testid="stFileUploaderDropzone"] * {{
+    color: {text} !important;
+}}
+[data-testid="stFileUploaderDropzone"] button {{
+    background: {'#ede9fe' if not dark else '#2a2a35'} !important;
+    color: {'#6d28d9' if not dark else '#a78bfa'} !important;
+    border: {'1px solid #c4b5fd' if not dark else '1px solid #3b3b52'} !important;
+    border-radius: 8px !important;
+}}
+[data-testid="stFileUploader"] span,
+[data-testid="stFileUploader"] small,
+[data-testid="stFileUploader"] p {{
+    color: {text} !important;
+}}
 
 textarea {{
     background-color: {'#fff5f0' if not dark else '#16161d'} !important;
