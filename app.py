@@ -220,14 +220,36 @@ h1, h2, h3 {{ font-family: 'Syne', sans-serif !important; }}
     border: 2px dashed {border} !important;
     border-radius: 14px !important;
 }}
+[data-testid="stFileUploader"] > div {{
+    background: {input_bg} !important;
+    border-radius: 12px !important;
+}}
+[data-testid="stFileUploader"] section {{
+    background: {input_bg} !important;
+    border: none !important;
+    border-radius: 12px !important;
+}}
+[data-testid="stFileUploader"] section > div {{
+    background: {input_bg} !important;
+}}
+[data-testid="stFileUploaderDropzone"] {{
+    background: {'#f5f0ff' if not dark else '#16161d'} !important;
+    border: 2px dashed {'#c4b5fd' if not dark else '#2a2a35'} !important;
+    border-radius: 12px !important;
+}}
+
 textarea {{
-    background-color: {input_bg} !important;
-    border: 1px solid {input_border} !important;
+    background-color: {'#fff5f0' if not dark else '#16161d'} !important;
+    border: 1px solid {'#fed7aa' if not dark else '#2a2a35'} !important;
     color: {input_text} !important;
     border-radius: 10px !important;
 }}
+[data-testid="stTextArea"] > div > div {{
+    background-color: {'#fff5f0' if not dark else '#16161d'} !important;
+    border-radius: 10px !important;
+}}
 
-/* Button */
+/* Button - analyze */
 .stButton>button {{
     background: linear-gradient(135deg, #7c3aed, #2563eb);
     color: white;
@@ -242,11 +264,11 @@ textarea {{
 }}
 .stButton>button:hover {{ opacity: 0.85; }}
 
-/* Toggle button */
-.toggle-btn>button {{
-    background: linear-gradient(135deg, #7c3aed, #2563eb) !important;
-    color: white !important;
-    border: none !important;
+/* Toggle button — sidebar only, pill style */
+[data-testid="stSidebar"] .stButton>button {{
+    background: {'#1e1e2e' if dark else '#ede9fe'} !important;
+    color: {'#a78bfa' if dark else '#6d28d9'} !important;
+    border: {'1px solid #3b3b52' if dark else '1px solid #c4b5fd'} !important;
     border-radius: 99px !important;
     font-size: 0.82rem !important;
     font-family: 'Syne', sans-serif !important;
@@ -254,10 +276,12 @@ textarea {{
     letter-spacing: 0.04em !important;
     height: 2.4em !important;
     width: 100% !important;
-    box-shadow: 0 2px 12px rgba(124,58,237,0.3) !important;
-    transition: opacity 0.2s !important;
+    box-shadow: none !important;
 }}
-.toggle-btn>button:hover {{ opacity: 0.85 !important; }}
+[data-testid="stSidebar"] .stButton>button:hover {{
+    background: {'#2a2a40' if dark else '#ddd6fe'} !important;
+    opacity: 1 !important;
+}}
 
 /* Light mode upload pastel */
 .upload-wrap-light [data-testid="stFileUploader"] {{
@@ -435,9 +459,7 @@ def generate_report_text(score, category_scores, missing_keywords, suggestions, 
 # ---------- SIDEBAR ----------
 with st.sidebar:
     st.markdown("### ⚙️ Settings & Tips")
-    st.markdown("<div class='toggle-btn'>", unsafe_allow_html=True)
     st.button(f"{toggle_icon}  {toggle_label}", on_click=toggle_theme, key="theme_toggle")
-    st.markdown("</div>", unsafe_allow_html=True)
     st.divider()
     st.markdown("**How to get a better score:**")
     st.markdown("- Mirror keywords from the job description\n- Quantify your achievements\n- Use action verbs\n- Keep formatting ATS-friendly")
