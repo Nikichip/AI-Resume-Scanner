@@ -244,14 +244,40 @@ textarea {{
 
 /* Toggle button */
 .toggle-btn>button {{
-    background: {card_bg} !important;
-    color: {text} !important;
-    border: 1px solid {border} !important;
+    background: linear-gradient(135deg, #7c3aed, #2563eb) !important;
+    color: white !important;
+    border: none !important;
     border-radius: 99px !important;
-    padding: 4px 16px !important;
-    font-size: 0.85rem !important;
-    height: 2.2em !important;
-    width: auto !important;
+    font-size: 0.82rem !important;
+    font-family: 'Syne', sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    height: 2.4em !important;
+    width: 100% !important;
+    box-shadow: 0 2px 12px rgba(124,58,237,0.3) !important;
+    transition: opacity 0.2s !important;
+}}
+.toggle-btn>button:hover {{ opacity: 0.85 !important; }}
+
+/* Light mode upload pastel */
+.upload-wrap-light [data-testid="stFileUploader"] {{
+    background: #f5f0ff !important;
+    border: 2px dashed #c4b5fd !important;
+}}
+
+/* Score guide */
+.score-guide-item {{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    padding: 4px 0;
+}}
+.dot {{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }}
 
 /* Divider */
@@ -410,14 +436,20 @@ def generate_report_text(score, category_scores, missing_keywords, suggestions, 
 with st.sidebar:
     st.markdown("### ⚙️ Settings & Tips")
     st.markdown("<div class='toggle-btn'>", unsafe_allow_html=True)
-    st.button(f"{toggle_icon} {toggle_label}", on_click=toggle_theme, key="theme_toggle")
+    st.button(f"{toggle_icon}  {toggle_label}", on_click=toggle_theme, key="theme_toggle")
     st.markdown("</div>", unsafe_allow_html=True)
     st.divider()
     st.markdown("**How to get a better score:**")
     st.markdown("- Mirror keywords from the job description\n- Quantify your achievements\n- Use action verbs\n- Keep formatting ATS-friendly")
     st.divider()
     st.markdown("**Score Guide**")
-    st.markdown("🟢 70%+ → Strong Match\n🟡 40–69% → Moderate\n🔴 <40% → Needs Work")
+    st.markdown(f"""
+<div>
+  <div class='score-guide-item'><div class='dot' style='background:#34d399'></div><span style='color:{subtext}'>70%+ &rarr; Strong Match</span></div>
+  <div class='score-guide-item'><div class='dot' style='background:#fbbf24'></div><span style='color:{subtext}'>40-69% &rarr; Moderate</span></div>
+  <div class='score-guide-item'><div class='dot' style='background:#f87171'></div><span style='color:{subtext}'>&lt;40% &rarr; Needs Work</span></div>
+</div>
+""", unsafe_allow_html=True)
     st.divider()
     st.caption("Built with Streamlit · TF-IDF & NLP")
 
@@ -433,7 +465,11 @@ col1, col2 = st.columns(2, gap="large")
 
 with col1:
     st.markdown("<div class='section-header'>📎 Upload Resume</div>", unsafe_allow_html=True)
+    if not dark:
+        st.markdown("<div class='upload-wrap-light'>", unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Upload PDF", type=["pdf"], label_visibility="collapsed")
+    if not dark:
+        st.markdown("</div>", unsafe_allow_html=True)
 
 with col2:
     st.markdown("<div class='section-header'>📋 Job Description</div>", unsafe_allow_html=True)
@@ -466,12 +502,12 @@ if uploaded_file and job_description and analyze:
     col_score, col_cats = st.columns([1, 2], gap="large")
 
     with col_score:
-        sc = get_score_class(score)
+        s_col = score_color(score)
         st.markdown(f"""
         <div class='card score-ring-container'>
-            <div class='score-number {sc}'>{score}%</div>
+            <div style='font-family:Syne,sans-serif; font-size:2.6rem; font-weight:800; line-height:1; color:{s_col}'>{score}%</div>
             <div class='score-label'>Match Score</div>
-            <div style='margin-top:10px; font-size:0.9rem; color:#9ca3af'>{score_label(score)}</div>
+            <div style='margin-top:10px; font-size:0.88rem; color:#9ca3af'>{score_label(score)}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -479,24 +515,24 @@ if uploaded_file and job_description and analyze:
         s_color = score_color(strength_score)
         st.markdown(f"""
         <div class='card'>
-            <div class='section-header'>💪 Resume Strength</div>
+            <div class='section-header'>Resume Strength</div>
             <div style='font-size:2rem; font-weight:800; color:{s_color}; font-family:Syne,sans-serif'>{strength_score}%</div>
             <div class='cat-bar-bg'><div class='cat-bar-fill' style='width:{strength_score}%; background:{s_color}'></div></div>
         </div>
         """, unsafe_allow_html=True)
         if strength_issues:
             for issue in strength_issues:
-                st.markdown(f"<div class='ats-warn'>⚠️ {issue}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='ats-warn'>⚠ {issue}</div>", unsafe_allow_html=True)
 
     with col_cats:
-        st.markdown("<div class='section-header'>📊 Score Breakdown by Category</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-header'>Score Breakdown by Category</div>", unsafe_allow_html=True)
         for cat, val in cat_scores.items():
             if val is None:
                 continue
             c = score_color(val)
             st.markdown(f"""
             <div style='margin-bottom:6px'>
-                <div style='display:flex; justify-content:space-between; font-size:0.9rem; color:#9ca3af'>
+                <div style='display:flex; justify-content:space-between; font-size:0.9rem; color:{subtext}'>
                     <span>{cat}</span><span style='color:{c}; font-weight:600'>{val}%</span>
                 </div>
                 <div class='cat-bar-bg'>
@@ -506,12 +542,19 @@ if uploaded_file and job_description and analyze:
             """, unsafe_allow_html=True)
 
         # ATS check
-        st.markdown("<div class='section-header' style='margin-top:20px'>🤖 ATS Compatibility</div>", unsafe_allow_html=True)
+        ats_ok_bg    = "#f0fdf4" if not dark else "#052e16"
+        ats_ok_border= "#86efac" if not dark else "#166534"
+        ats_ok_color = "#15803d" if not dark else "#34d399"
+        ats_warn_bg  = "#fffbeb" if not dark else "#1c1400"
+        ats_warn_border = "#fcd34d" if not dark else "#78350f"
+        ats_warn_color  = "#b45309" if not dark else "#fbbf24"
+
+        st.markdown("<div class='section-header' style='margin-top:20px'>ATS Compatibility</div>", unsafe_allow_html=True)
         if ats_warnings:
             for w in ats_warnings:
-                st.markdown(f"<div class='ats-warn'>⚠️ {w}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='background:{ats_warn_bg}; border:1px solid {ats_warn_border}; border-radius:10px; padding:12px 16px; color:{ats_warn_color}; margin-bottom:8px; font-size:0.9rem'>⚠ {w}</div>", unsafe_allow_html=True)
         else:
-            st.markdown("<div class='ats-ok'>✅ No ATS issues detected — your resume looks clean!</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='background:{ats_ok_bg}; border:1px solid {ats_ok_border}; border-radius:10px; padding:12px 16px; color:{ats_ok_color}; margin-bottom:8px; font-size:0.9rem'>✓ No ATS issues detected — your resume looks clean!</div>", unsafe_allow_html=True)
 
     st.divider()
 
@@ -519,7 +562,7 @@ if uploaded_file and job_description and analyze:
     col_found, col_missing = st.columns(2, gap="large")
 
     with col_found:
-        st.markdown(f"<div class='section-header'>✅ Found Keywords ({len(found_keywords)})</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='section-header'>Found Keywords ({len(found_keywords)})</div>", unsafe_allow_html=True)
         if found_keywords:
             chips = " ".join([f"<span class='chip-found'>{k}</span>" for k in found_keywords[:20]])
             st.markdown(chips, unsafe_allow_html=True)
@@ -527,25 +570,41 @@ if uploaded_file and job_description and analyze:
             st.caption("No matching keywords found.")
 
     with col_missing:
-        st.markdown(f"<div class='section-header'>🚨 Missing Keywords ({len(missing_keywords)})</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='section-header'>Missing Keywords ({len(missing_keywords)})</div>", unsafe_allow_html=True)
         if missing_keywords:
             chips = " ".join([f"<span class='chip-missing'>{k}</span>" for k in missing_keywords])
             st.markdown(chips, unsafe_allow_html=True)
         else:
-            st.markdown("<div class='ats-ok'>✅ Your resume contains all required keywords!</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='background:{ats_ok_bg}; border:1px solid {ats_ok_border}; border-radius:10px; padding:12px 16px; color:{ats_ok_color}; font-size:0.9rem'>✓ Your resume contains all required keywords!</div>", unsafe_allow_html=True)
 
     st.divider()
 
     # --- ROW 3: Suggestions + Download ---
-    st.markdown("<div class='section-header'>✨ Improvement Suggestions</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>Improvement Suggestions</div>", unsafe_allow_html=True)
     for s in suggestions:
-        st.markdown(f"<div class='suggestion-card'>💡 {s}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='suggestion-card'>{s}</div>", unsafe_allow_html=True)
 
     st.divider()
 
-    # Download report
+    # Download report — theme-aware
+    dl_bg     = "linear-gradient(135deg, #7c3aed, #2563eb)" if dark else "linear-gradient(135deg, #7c3aed, #2563eb)"
+    st.markdown(f"""
+    <style>
+    [data-testid="stDownloadButton"] button {{
+        background: linear-gradient(135deg, #7c3aed, #2563eb) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 10px !important;
+        font-family: 'Syne', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 15px !important;
+        height: 3em !important;
+        box-shadow: 0 2px 12px rgba(124,58,237,0.3) !important;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
     st.download_button(
-        label="📥 Download Full Report",
+        label="Download Full Report",
         data=report_text,
         file_name="resume_analysis_report.txt",
         mime="text/plain"
