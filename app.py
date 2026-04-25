@@ -83,7 +83,7 @@ h1, h2, h3 {{ font-family: 'Syne', sans-serif !important; }}
 .hero-sub {{ text-align:center; color:{subtext}; font-size:1.05rem; margin-bottom:2rem; font-weight:300; }}
 .card {{ background:{card_bg}; border:1px solid {border}; border-radius:16px; padding:24px; margin-bottom:16px; }}
 .score-ring-container {{ display:flex; align-items:center; justify-content:center; flex-direction:column; padding:24px; }}
-.score-number {{ font-family:'Syne',sans-serif; font-size:4rem; font-weight:800; line-height:1; }}
+.score-number {{ font-family:'Syne',sans-serif; font-size:2.8rem; font-weight:800; line-height:1; }}
 .score-label {{ font-size:0.85rem; color:{subtext}; margin-top:4px; letter-spacing:0.1em; text-transform:uppercase; }}
 .cat-bar-bg {{ background:{bar_bg}; border-radius:99px; height:8px; margin:6px 0 14px 0; overflow:hidden; }}
 .cat-bar-fill {{ height:8px; border-radius:99px; }}
@@ -223,9 +223,16 @@ def categorize_missing(missing_keywords):
 
 def call_claude(prompt):
     try:
+        api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
+        if not api_key:
+            return None
         resp = requests.post(
             "https://api.anthropic.com/v1/messages",
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01"
+            },
             json={
                 "model": "claude-sonnet-4-20250514",
                 "max_tokens": 1000,
@@ -466,10 +473,16 @@ Format: just 3 bullet points, one per line, starting with •""")
         st.markdown("<div class='section-header'>📝 Cover Letter Generator</div>", unsafe_allow_html=True)
         if st.button("✨ Generate Cover Letter"):
             with st.spinner("Writing your cover letter..."):
-                st.session_state.cover_letter = call_claude(f"""Write a professional, concise cover letter for a {job_title} position.
+                api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
+                if not api_key:
+                    st.error("❌ No API key found — add ANTHROPIC_API_KEY to Streamlit secrets.")
+                else:
+                    st.session_state.cover_letter = call_claude(f"""Write a professional, concise cover letter for a {job_title} position.
 Resume context: {resume_text[:800]}
 Job description context: {job_description[:600]}
 3 paragraphs. Professional but warm tone. No placeholder brackets like [Company Name].""")
+                    if not st.session_state.cover_letter:
+                        st.error("❌ API call failed — check your API key is valid and has credits.")
 
         if st.session_state.cover_letter:
             st.markdown(f"<div class='cover-letter-box'>{st.session_state.cover_letter}</div>", unsafe_allow_html=True)
