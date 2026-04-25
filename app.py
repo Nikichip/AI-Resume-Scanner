@@ -105,33 +105,33 @@ h1, h2, h3 {{ font-family: 'Syne', sans-serif !important; }}
 }}
 
 /* Score display */
-.score-ring-container {
+.score-ring-container {{
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     padding: 24px;
-}
+}}
 
-.score-number {
+.score-number {{
     font-family: 'Syne', sans-serif;
     font-size: 4rem;
     font-weight: 800;
     line-height: 1;
-}
+}}
 
-.score-label {
+.score-label {{
     font-size: 0.85rem;
     color: #6b7280;
     margin-top: 4px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-}
+}}
 
 /* Score colors */
-.score-high { color: #34d399; }
-.score-mid  { color: #fbbf24; }
-.score-low  { color: #f87171; }
+.score-high {{ color: #34d399; }}
+.score-mid  {{ color: #fbbf24; }}
+.score-low  {{ color: #f87171; }}
 
 /* Category score bars */
 .cat-bar-bg {{
