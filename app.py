@@ -83,7 +83,7 @@ h1, h2, h3 {{ font-family: 'Syne', sans-serif !important; }}
 .hero-sub {{ text-align:center; color:{subtext}; font-size:1.05rem; margin-bottom:2rem; font-weight:300; }}
 .card {{ background:{card_bg}; border:1px solid {border}; border-radius:16px; padding:24px; margin-bottom:16px; }}
 .score-ring-container {{ display:flex; align-items:center; justify-content:center; flex-direction:column; padding:24px; }}
-.score-number {{ font-family:'Syne',sans-serif; font-size:2.8rem; font-weight:800; line-height:1; }}
+.score-number {{ font-family:'Syne',sans-serif; font-size:2rem; font-weight:800; line-height:1; }}
 .score-label {{ font-size:0.85rem; color:{subtext}; margin-top:4px; letter-spacing:0.1em; text-transform:uppercase; }}
 .cat-bar-bg {{ background:{bar_bg}; border-radius:99px; height:8px; margin:6px 0 14px 0; overflow:hidden; }}
 .cat-bar-fill {{ height:8px; border-radius:99px; }}
@@ -165,7 +165,7 @@ def check_ats(text):
     if re.search(r'[│┤╡╢╖╕╣║╗╝╔╩╦╠═╬]', text): w.append("Special box characters detected — may break ATS parsing")
     return w
 
-def category_scores(resume_text, jd):
+def category_scores(resume_text, jd, overall_score):
     cats = {
         "Skills & Tech": ["python","javascript","sql","react","aws","docker","api","machine learning","data","cloud","java","git"],
         "Experience":    ["experience","years","worked","developed","built","led","managed","delivered"],
@@ -175,7 +175,9 @@ def category_scores(resume_text, jd):
     for cat, kws in cats.items():
         hits = [k for k in kws if k in jl]
         if not hits: results[cat] = None; continue
-        results[cat] = round(len([k for k in hits if k in rl]) / len(hits) * 100)
+        raw = round(len([k for k in hits if k in rl]) / len(hits) * 100)
+        # Scale relative to overall score to keep consistent
+        results[cat] = min(raw, overall_score + 20)
     return results
 
 def get_found_keywords(resume_text, jd):
@@ -343,7 +345,7 @@ if uploaded_file and job_description and analyze:
 
         score, missing_keywords = keyword_match(resume_text, job_description)
         suggestions = generate_suggestions(missing_keywords)
-        cat_scores = category_scores(resume_text, job_description)
+        cat_scores = category_scores(resume_text, job_description, score)
         found_keywords = get_found_keywords(resume_text, job_description)
         missing_cats = categorize_missing(missing_keywords)
         strength_score, strength_issues = check_resume_strength(resume_text)
@@ -445,49 +447,26 @@ if uploaded_file and job_description and analyze:
 
     st.divider()
 
-    # AI Features
-    ai_col1, ai_col2 = st.columns(2, gap="large")
-
-    with ai_col1:
-        st.markdown("<div class='section-header'>✍️ Resume Rewrite Suggestions</div>", unsafe_allow_html=True)
-        if missing_keywords:
-            if st.session_state.rewrite_bullets is None:
-                with st.spinner("Generating bullet point suggestions..."):
-                    st.session_state.rewrite_bullets = call_claude(f"""You are a professional resume writer.
+    # AI Features - Rewrite Suggestions only
+    st.markdown("<div class='section-header'>✍️ Resume Rewrite Suggestions</div>", unsafe_allow_html=True)
+    if missing_keywords:
+        if st.session_state.rewrite_bullets is None:
+            with st.spinner("Generating bullet point suggestions..."):
+                st.session_state.rewrite_bullets = call_claude(f"""You are a professional resume writer.
 The candidate is applying for a {job_title} role.
 Their resume is missing these keywords: {', '.join(missing_keywords[:8])}.
 Write 3 strong resume bullet points they could add to include these missing skills.
 Each bullet starts with an action verb and includes a metric where possible.
 Format: just 3 bullet points, one per line, starting with •""")
-            if st.session_state.rewrite_bullets:
-                for line in st.session_state.rewrite_bullets.strip().split("\n"):
-                    if line.strip():
-                        st.markdown(f"<div class='rewrite-card'>{line.strip()}</div>", unsafe_allow_html=True)
-            else:
-                for s in suggestions[:3]:
-                    st.markdown(f"<div class='suggestion-card'>💡 {s}</div>", unsafe_allow_html=True)
+        if st.session_state.rewrite_bullets:
+            for line in st.session_state.rewrite_bullets.strip().split("\n"):
+                if line.strip():
+                    st.markdown(f"<div class='rewrite-card'>{line.strip()}</div>", unsafe_allow_html=True)
         else:
-            st.success("✅ No missing keywords — your resume looks great!")
-
-    with ai_col2:
-        st.markdown("<div class='section-header'>📝 Cover Letter Generator</div>", unsafe_allow_html=True)
-        if st.button("✨ Generate Cover Letter"):
-            with st.spinner("Writing your cover letter..."):
-                api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
-                if not api_key:
-                    st.error("❌ No API key found — add ANTHROPIC_API_KEY to Streamlit secrets.")
-                else:
-                    st.session_state.cover_letter = call_claude(f"""Write a professional, concise cover letter for a {job_title} position.
-Resume context: {resume_text[:800]}
-Job description context: {job_description[:600]}
-3 paragraphs. Professional but warm tone. No placeholder brackets like [Company Name].""")
-                    if not st.session_state.cover_letter:
-                        st.error("❌ API call failed — check your API key is valid and has credits.")
-
-        if st.session_state.cover_letter:
-            st.markdown(f"<div class='cover-letter-box'>{st.session_state.cover_letter}</div>", unsafe_allow_html=True)
-            st.download_button("📥 Download Cover Letter", data=st.session_state.cover_letter,
-                               file_name="cover_letter.txt", mime="text/plain", key="dl_cover")
+            for s in suggestions[:3]:
+                st.markdown(f"<div class='suggestion-card'>💡 {s}</div>", unsafe_allow_html=True)
+    else:
+        st.success("✅ No missing keywords — your resume looks great!")
 
     st.divider()
 
