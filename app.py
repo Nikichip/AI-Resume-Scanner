@@ -165,19 +165,18 @@ def check_ats(text):
     if re.search(r'[│┤╡╢╖╕╣║╗╝╔╩╦╠═╬]', text): w.append("Special box characters detected — may break ATS parsing")
     return w
 
-def category_scores(resume_text, jd, overall_score):
+def category_scores(resume_text, jd):
     cats = {
-        "Skills & Tech": ["python","javascript","sql","react","aws","docker","api","machine learning","data","cloud","java","git"],
-        "Experience":    ["experience","years","worked","developed","built","led","managed","delivered"],
-        "Education":     ["bachelor","master","degree","university","college","certification","certified"],
+        "Skills & Tech": ["python","javascript","sql","react","aws","docker","api","machine learning","data","cloud","java","git","excel","tableau","power bi"],
+        "Experience":    ["experience","years","worked","developed","built","led","managed","delivered","responsible","role"],
+        "Education":     ["bachelor","master","degree","university","college","certification","certified","diploma"],
     }
     jl = jd.lower(); rl = resume_text.lower(); results = {}
     for cat, kws in cats.items():
         hits = [k for k in kws if k in jl]
         if not hits: results[cat] = None; continue
-        raw = round(len([k for k in hits if k in rl]) / len(hits) * 100)
-        # Scale relative to overall score to keep consistent
-        results[cat] = min(raw, overall_score + 20)
+        found = len([k for k in hits if k in rl])
+        results[cat] = round(found / len(hits) * 100)
     return results
 
 def get_found_keywords(resume_text, jd):
@@ -345,7 +344,7 @@ if uploaded_file and job_description and analyze:
 
         score, missing_keywords = keyword_match(resume_text, job_description)
         suggestions = generate_suggestions(missing_keywords)
-        cat_scores = category_scores(resume_text, job_description, score)
+        cat_scores = category_scores(resume_text, job_description)
         found_keywords = get_found_keywords(resume_text, job_description)
         missing_cats = categorize_missing(missing_keywords)
         strength_score, strength_issues = check_resume_strength(resume_text)
